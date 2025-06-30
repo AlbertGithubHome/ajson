@@ -1037,23 +1037,23 @@ namespace ajson
               }
               else
               {
-                unsigned char c1 = (uint8_t)(codepoint >> 24);
-                unsigned char c2 = (uint8_t)(codepoint >> 16);
-                unsigned char c3 = (uint8_t)(codepoint >> 8);
-                unsigned char c4 = (uint8_t)codepoint;
+                // utf-16 surrogate pair encoding (\uXXXX\uYYYY)
+                uint32_t cp_prime = codepoint - 0x10000;
+                uint16_t high = 0xD800 + (cp_prime >> 10);
+                uint16_t low  = 0xDC00 + (cp_prime & 0x3FF);
 
                 put('\\');
                 put('u');
-                put(hex_table[(c1) >> 4]);
-                put(hex_table[(c1)& 0xF]);
-                put(hex_table[(c2) >> 4]);
-                put(hex_table[(c2)& 0xF]);
+                put(hex_table[(high >> 12) & 0xF]);
+                put(hex_table[(high >> 8) & 0xF]);
+                put(hex_table[(high >> 4) & 0xF]);
+                put(hex_table[high & 0xF]);
                 put('\\');
                 put('u');
-                put(hex_table[(c3) >> 4]);
-                put(hex_table[(c3)& 0xF]);
-                put(hex_table[(c4) >> 4]);
-                put(hex_table[(c4)& 0xF]);
+                put(hex_table[(low >> 12) & 0xF]);
+                put(hex_table[(low >> 8) & 0xF]);
+                put(hex_table[(low >> 4) & 0xF]);
+                put(hex_table[low & 0xF]);
               }
             }
             else
@@ -1555,7 +1555,7 @@ namespace ajson
     } while (len > 0);
     return true;
   }
-  
+
   template<typename ty>
   struct json_impl < ty,
     typename std::enable_if <detail::is_stdstring<ty>::value>::type >
