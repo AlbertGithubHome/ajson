@@ -1452,7 +1452,7 @@ namespace ajson
       str.append(1, (char)(0xC0 | ((utf1 >> 6) & 0xFF)));
       str.append(1, (char)(0x80 | ((utf1 & 0x3F))));
     }
-    else if (utf1 < 0x80000)
+    else if (utf1 < 0x10000)
     {
       str.append(1, (char)(0xE0 | ((utf1 >> 12) & 0xFF)));
       str.append(1, (char)(0x80 | ((utf1 >> 6) & 0x3F)));
@@ -1460,7 +1460,7 @@ namespace ajson
     }
     else
     {
-      if (utf1 < 0x110000)
+      if (utf1 >= 0x110000)
       {
         return false;
       }
