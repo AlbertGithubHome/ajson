@@ -1475,6 +1475,7 @@ namespace ajson
   template<typename string_ty>
   bool escape_string(string_ty& str , const char * data , size_t len)
   {
+    uint64_t high = 0;
     str.clear();
     str.reserve(len);
     if (len == 0)
@@ -1539,6 +1540,23 @@ namespace ajson
           len -= 4;
           if (uft1 == 0)
             return false;
+          if (uft1 >= 0xD800 && uft1 <= 0xDBFF) // high surrogate
+          {
+            if (high)
+              return false; // already have a high surrogate, error
+            high = uft1;
+            continue;
+          }
+          else if (uft1 >= 0xDC00 && uft1 <= 0xDFFF) // low surrogate
+          {
+            if (!high)
+              return false; // no preceding high surrogate, error
+            else
+            {
+              uft1 = 0x10000 + ((high - 0xD800) << 10) + (uft1 - 0xDC00); // claculate code point
+              high = 0;
+            }
+          }
           if (!esacpe_utf8(str, uft1))
             return false;
           continue;
@@ -1553,6 +1571,8 @@ namespace ajson
       }
       str.append(1, c);
     } while (len > 0);
+    if (high)
+      return false; // high surrogate without valid low surrogate
     return true;
   }
 
